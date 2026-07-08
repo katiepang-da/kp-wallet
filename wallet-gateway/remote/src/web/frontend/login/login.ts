@@ -197,6 +197,12 @@ export class LoginUI extends BaseElement {
         await addUserSession(accessToken, networkId)
     }
 
+    private get recommendedNetworkIds(): string[] {
+        return this.networks
+            .filter((n) => n.authMethod === 'authorization_code')
+            .map((n) => n.id)
+    }
+
     protected render() {
         if (this.connecting) {
             return html`<wg-loading-state
@@ -208,6 +214,7 @@ export class LoginUI extends BaseElement {
             <wg-login-form
                 .networks=${this.networks}
                 .idps=${this.idps}
+                .recommendedNetworkIds=${this.recommendedNetworkIds}
                 .connecting=${this.connecting}
                 @login-connect=${this.handleConnect}
             ></wg-login-form>

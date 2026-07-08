@@ -101,11 +101,16 @@ class PopupInstance {
                     margin: 0;
                     padding: 0;
                     width: 100%;
-                    height: 100%;
+                    min-height: 100%;
                 }
 
                 body {
                     display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: #ffffff;
+                    padding: 1rem;
+                    box-sizing: border-box;
                 }
             </style>
         </head>
@@ -120,7 +125,7 @@ class PopupInstance {
 
             const content = document.createElement('popup-content');
             content.style.width = '100%';
-            content.style.height = '100%';
+            content.style.maxWidth = '100%';
 
             document.body.appendChild(content)
 

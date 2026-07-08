@@ -27,9 +27,13 @@ const SUBSTITUTABLE_CSS = cssToString([
         .root {
             background-color: var(--wg-theme-background-color);
             width: 100%;
-            height: 100%;
+            max-width: 420px;
+            margin: 0 auto;
             display: flex;
             flex-direction: column;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--wg-shadow-lg, 0 14px 28px rgba(15, 23, 42, 0.12));
         }
 
         .view-container {
@@ -888,6 +892,10 @@ export class WalletPicker extends HTMLElement {
             )
             list.appendChild(empty)
         } else {
+            const otherTitle = this.el('div', 'Popular', {
+                class: 'custom-url-label',
+            })
+            list.appendChild(otherTitle)
             for (const entry of allEntries) {
                 list.appendChild(this.renderWalletCard(entry))
             }
@@ -896,7 +904,7 @@ export class WalletPicker extends HTMLElement {
         const suggestedEntries = this.getSuggestedEntries()
 
         if (suggestedEntries.length > 0) {
-            const suggestedTitle = this.el('div', 'Suggested Wallets', {
+            const suggestedTitle = this.el('div', 'More Wallets', {
                 class: 'custom-url-label suggested-title',
             })
             list.appendChild(suggestedTitle)

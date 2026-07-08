@@ -21,6 +21,12 @@ export class AppLayout extends BaseElement {
             :host {
                 display: block;
                 width: 100%;
+                max-width: 500px;
+                margin: 2rem auto;
+                background: var(--wg-surface);
+                border-radius: 16px;
+                box-shadow: var(--wg-shadow-lg);
+                overflow: hidden;
             }
         `,
     ]

@@ -6,7 +6,6 @@ import { customElement, property, state } from 'lit/decorators.js'
 import './back-link.js'
 import { BaseElement } from '../internal/base-element.js'
 import { PublicNetwork, Idp } from '@canton-network/core-wallet-user-rpc-client'
-import { chevronDownIcon } from '../icons'
 import cantonLogo from '../../images/logos/canton-logo.png'
 
 /** Emitted when the user clicks the Connect button */
@@ -39,6 +38,9 @@ export class WgLoginForm extends BaseElement {
     /** Available identity providers */
     @property({ type: Array }) idps: Idp[] = []
 
+    /** IDs of networks to show in the "Recommended" section */
+    @property({ type: Array }) recommendedNetworkIds: string[] = []
+
     @property({ type: Boolean }) connecting = false
     @property({ type: String }) backHref = '/'
 
@@ -51,138 +53,214 @@ export class WgLoginForm extends BaseElement {
         BaseElement.styles,
         css`
             :host {
-                display: block;
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 min-height: 100dvh;
+                padding: 1rem;
+                box-sizing: border-box;
             }
 
-            .screen {
-                min-height: 100dvh;
+            .modal-card {
+                width: 100%;
+                max-width: 420px;
+                background: var(--wg-surface);
+                border-radius: 16px;
+                box-shadow: var(--wg-shadow-lg);
+                overflow: hidden;
                 display: flex;
                 flex-direction: column;
             }
 
             .top-bar {
-                height: 44px;
                 display: flex;
                 align-items: center;
-                padding: 0 14px;
-                border-bottom: 1px solid #d1d5db;
+                gap: 0.625rem;
+                padding: 1rem 1.25rem 0;
             }
 
             .top-logo {
-                width: 24px;
-                height: 24px;
+                width: 28px;
+                height: 28px;
                 object-fit: contain;
                 display: block;
             }
 
+            .top-title {
+                font-size: var(--wg-font-size-lg);
+                font-weight: var(--wg-font-weight-bold);
+                color: var(--wg-text);
+                margin: 0;
+            }
+
             .content {
-                flex: 1;
-                padding: 14px 16px 0;
+                padding: 1rem 1.25rem 0;
                 display: flex;
                 flex-direction: column;
-                gap: 12px;
+                gap: 0.75rem;
             }
 
-            .title-row {
+            .section-title {
+                font-size: var(--wg-font-size-xs);
+                font-weight: var(--wg-font-weight-semibold);
+                color: var(--wg-text-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin: 0.5rem 0 0.375rem;
+            }
+
+            .network-item {
+                width: 100%;
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
-                gap: 12px;
-                margin-bottom: 20px;
+                gap: 0.75rem;
+                padding: 0.75rem 1rem;
+                border: 1px solid var(--wg-border);
+                border-radius: var(--wg-radius-lg);
+                background: var(--wg-input-bg);
+                cursor: pointer;
+                transition:
+                    border-color 0.15s ease,
+                    box-shadow 0.15s ease;
+                text-align: left;
+                font: inherit;
+                color: var(--wg-text);
+                box-sizing: border-box;
             }
 
-            .select-wrap {
-                position: relative;
+            .network-item:hover {
+                border-color: var(--wg-accent);
             }
 
-            .network-select,
+            .network-item.selected {
+                border-color: var(--wg-accent);
+                box-shadow: 0 0 0 3px rgba(var(--wg-accent-rgb), 0.15);
+                background: rgba(var(--wg-accent-rgb), 0.04);
+            }
+
+            .network-item:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            .network-item-body {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .network-item-name {
+                font-size: var(--wg-font-size-sm);
+                font-weight: var(--wg-font-weight-semibold);
+                display: block;
+                line-height: 1.3;
+            }
+
+            .network-item-desc {
+                font-size: var(--wg-font-size-xs);
+                color: var(--wg-text-secondary);
+                display: block;
+                line-height: 1.3;
+                margin-top: 0.125rem;
+            }
+
+            .network-check {
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                border: 2px solid var(--wg-border);
+                flex: 0 0 auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: border-color 0.15s ease;
+            }
+
+            .network-check.selected {
+                border-color: var(--wg-accent);
+                background: var(--wg-accent);
+            }
+
+            .network-check.selected::after {
+                content: '';
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: var(--wg-primary-text);
+            }
+
+            .section-divider {
+                height: 1px;
+                background: var(--wg-border);
+                margin: 0.125rem 0;
+            }
+
             .client-id-input {
                 width: 100%;
-                border: 1px solid #d4d4d8;
-                border-radius: 4px;
+                border: 1px solid var(--wg-border);
+                border-radius: var(--wg-radius-md);
                 background: var(--wg-input-bg);
-                padding: 12px 40px 12px 14px;
+                padding: 0.625rem 0.75rem;
                 font: inherit;
+                font-size: var(--wg-font-size-sm);
                 line-height: var(--bs-body-line-height);
                 outline: none;
-                appearance: none;
+                box-sizing: border-box;
             }
 
-            .network-select:focus,
             .client-id-input:focus {
                 border-color: var(--wg-input-border-focus);
                 box-shadow: 0 0 0 3px rgba(var(--wg-accent-rgb), 0.12);
             }
 
-            .select-chevron {
-                position: absolute;
-                right: 12px;
-                top: 50%;
-                transform: translateY(-50%);
-                color: #222;
-                pointer-events: none;
-                display: inline-flex;
-            }
-
             .footer {
-                margin-top: auto;
-                padding: 16px;
+                padding: 1rem 1.25rem;
             }
 
             .connect-btn {
-                padding: 12px 18px;
+                padding: 0.7rem 1.25rem;
+                font-size: var(--wg-font-size-sm);
+                font-weight: var(--wg-font-weight-semibold);
             }
         `,
     ]
+
+    private get recommendedNetworks(): PublicNetwork[] {
+        return this.networks.filter((n) =>
+            this.recommendedNetworkIds.includes(n.id)
+        )
+    }
+
+    private get otherNetworks(): PublicNetwork[] {
+        return this.networks.filter(
+            (n) => !this.recommendedNetworkIds.includes(n.id)
+        )
+    }
 
     protected updated(changedProperties: PropertyValues<this>) {
         super.updated(changedProperties)
 
         if (changedProperties.has('networks') && !this.selectedNetwork) {
-            const index = this.networks.findIndex(
+            const recommended = this.recommendedNetworks
+            const preferred =
+                recommended.length > 0 ? recommended : this.networks
+
+            const index = preferred.findIndex(
                 (network) => network.authMethod !== 'client_credentials'
             )
 
             if (index >= 0) {
-                this.selectedNetwork = this.networks[index]
-                this.selectedIdp =
-                    this.idps.find(
-                        (idp) =>
-                            idp.id === this.selectedNetwork?.identityProviderId
-                    ) ?? null
+                this.selectNetwork(preferred[index])
+            } else if (preferred.length > 0) {
+                this.selectNetwork(preferred[0])
             }
         }
     }
 
-    private get selectedNetworkIndex() {
-        if (!this.selectedNetwork) {
-            return ''
-        }
-
-        const index = this.networks.findIndex(
-            (network) => network.id === this.selectedNetwork?.id
-        )
-
-        return index >= 0 ? String(index) : ''
-    }
-
-    private handleChange(e: Event) {
-        const raw = (e.target as HTMLSelectElement).value
-        const index = Number.parseInt(raw, 10)
-
-        if (Number.isNaN(index)) {
-            this.selectedNetwork = null
-            this.selectedIdp = null
-            this.message = null
-            return
-        }
-
-        this.selectedNetwork = this.networks[index] ?? null
+    private selectNetwork(network: PublicNetwork) {
+        this.selectedNetwork = network
         this.selectedIdp =
-            this.idps.find(
-                (idp) => idp.id === this.selectedNetwork?.identityProviderId
-            ) ?? null
+            this.idps.find((idp) => idp.id === network.identityProviderId) ??
+            null
         this.message = null
     }
 
@@ -230,52 +308,67 @@ export class WgLoginForm extends BaseElement {
         this.messageType = null
     }
 
-    protected render() {
+    private renderNetworkItem(network: PublicNetwork) {
+        const isSelected = this.selectedNetwork?.id === network.id
+        const disabled =
+            this.connecting || network.authMethod === 'client_credentials'
+
         return html`
-            <main class="screen">
+            <button
+                type="button"
+                class="network-item ${isSelected ? 'selected' : ''}"
+                ?disabled=${disabled}
+                @click=${() => this.selectNetwork(network)}
+            >
+                <div class="network-item-body">
+                    <span class="network-item-name">${network.name}</span>
+                    ${network.description
+                        ? html`<span class="network-item-desc"
+                              >${network.description}</span
+                          >`
+                        : ''}
+                </div>
+                <div
+                    class="network-check ${isSelected ? 'selected' : ''}"
+                ></div>
+            </button>
+        `
+    }
+
+    protected render() {
+        const recommended = this.recommendedNetworks
+        const other = this.otherNetworks
+        const hasRecommended = recommended.length > 0
+
+        return html`
+            <div class="modal-card">
                 <div class="top-bar">
                     <img class="top-logo" src=${cantonLogo} alt="Canton logo" />
+                    <h1 class="top-title">Wallet Gateway</h1>
                 </div>
 
                 <div class="content">
-                    <div class="title-row">
-                        <h3 class="h3 mb-0 fw-bold">Wallet Gateway</h3>
-                    </div>
-
-                    <label
-                        class="form-label fw-semibold text-body mt-3 mb-2"
-                        for="network-select"
-                    >
-                        Select a network
-                    </label>
-
-                    <div class="select-wrap">
-                        <select
-                            id="network-select"
-                            class="network-select form-select"
-                            .value=${this.selectedNetworkIndex}
-                            @change=${this.handleChange}
-                            ?disabled=${this.connecting}
-                        >
-                            <option value="">Select network</option>
-                            ${this.networks.map(
-                                (net, index) =>
-                                    html`<option
-                                        value=${index}
-                                        ?disabled=${net.authMethod ===
-                                        'client_credentials'}
-                                    >
-                                        ${net.name}
-                                    </option>`
-                            )}
-                        </select>
-                        <span class="select-chevron">${chevronDownIcon}</span>
-                    </div>
-
+                    ${hasRecommended
+                        ? html`
+                              <p class="section-title">Recommended</p>
+                              ${recommended.map((n) =>
+                                  this.renderNetworkItem(n)
+                              )}
+                              ${other.length > 0
+                                  ? html`<div class="section-divider"></div>`
+                                  : ''}
+                          `
+                        : ''}
+                    ${other.length > 0
+                        ? html`
+                              <p class="section-title">Other</p>
+                              ${other.map((n) => this.renderNetworkItem(n))}
+                          `
+                        : ''}
                     ${this.selectedIdp?.type === 'self_signed'
                         ? html`
                               <label
-                                  class="form-label fw-semibold text-body mt-3 mb-2"
+                                  class="form-label fw-semibold text-body mt-2 mb-1"
                                   for="client-id"
                                   >Client ID</label
                               >
@@ -292,18 +385,12 @@ export class WgLoginForm extends BaseElement {
                         ? html`<div
                               class="alert ${this.messageType === 'error'
                                   ? 'alert-danger'
-                                  : 'alert-info'} py-2 px-3 small mt-2 mb-0"
+                                  : 'alert-info'} py-2 px-3 small mt-1 mb-0"
                               role="alert"
                           >
                               ${this.message}
                           </div>`
-                        : html`<p
-                              class="form-text text-body-secondary mt-2 mb-0"
-                          >
-                              ${this.selectedNetwork
-                                  ? `Selected: ${this.selectedNetwork.name}`
-                                  : 'Choose a network to continue.'}
-                          </p>`}
+                        : ''}
                 </div>
 
                 <div class="footer">
@@ -315,7 +402,7 @@ export class WgLoginForm extends BaseElement {
                         ${this.connecting ? 'Connecting…' : 'Connect'}
                     </button>
                 </div>
-            </main>
+            </div>
         `
     }
 }

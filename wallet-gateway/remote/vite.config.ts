@@ -76,7 +76,7 @@ export default defineConfig({
         alias: {
             '@canton-network/core-wallet-ui-components': resolve(
                 import.meta.dirname,
-                '../../core/wallet-ui-components'
+                '../../core/wallet-ui-components/src/index.ts'
             ),
             '@canton-network/core-wallet-user-rpc-client': resolve(
                 import.meta.dirname,

@@ -30,6 +30,7 @@ globalPageResetStyle.textContent = `
         margin: 0;
         padding: 0;
         min-height: 100%;
+        background: #ffffff;
     }
 `
 document.head.appendChild(globalPageResetStyle)
