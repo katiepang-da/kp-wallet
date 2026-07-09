@@ -24,8 +24,23 @@ const SUBSTITUTABLE_CSS = cssToString([
             color: var(--wg-theme-text-color);
         }
 
-        .root {
+        :host {
+            display: block;
+            min-height: 100dvh;
             background-color: var(--wg-theme-background-color);
+            background-image:
+                linear-gradient(
+                    90deg,
+                    rgba(0, 0, 0, 0.04) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(0deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+            background-size:
+                30px 30px,
+                30px 30px;
+        }
+
+        .root {
             width: 100%;
             max-width: 420px;
             margin: 0 auto;
@@ -39,26 +54,7 @@ const SUBSTITUTABLE_CSS = cssToString([
         .view-container {
             display: flex;
             flex-direction: column;
-            position: relative;
             flex: 1;
-        }
-
-        .view-container::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background-image:
-                linear-gradient(
-                    90deg,
-                    rgba(0, 0, 0, 0.04) 1px,
-                    transparent 1px
-                ),
-                linear-gradient(0deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
-            background-size:
-                30px 30px,
-                30px 30px;
-            pointer-events: none;
-            z-index: -1;
         }
 
         .header {
@@ -134,6 +130,7 @@ const SUBSTITUTABLE_CSS = cssToString([
             overflow-y: auto;
             overflow-x: hidden;
             padding: 4px 12px 0;
+            min-height: 0;
         }
 
         .wallet-suggested-card {
