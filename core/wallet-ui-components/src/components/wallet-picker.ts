@@ -36,8 +36,8 @@ const SUBSTITUTABLE_CSS = cssToString([
                 ),
                 linear-gradient(0deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
             background-size:
-                30px 30px,
-                30px 30px;
+                25px 25px,
+                25px 25px;
         }
 
         .view-container {
@@ -157,13 +157,13 @@ const SUBSTITUTABLE_CSS = cssToString([
                 radial-gradient(
                     ellipse 120% 100% at calc(var(--mx, 10) * 1%)
                         calc(var(--my, 40) * 1%),
-                    rgba(163, 207, 252, 0.35) 0%,
+                    rgba(124, 58, 237, 0.12) 0%,
                     transparent 50%
                 ),
                 radial-gradient(
                     ellipse 100% 120% at calc(100% - var(--mx, 85) * 1%)
                         calc(var(--my, 60) * 1%),
-                    rgba(242, 249, 169, 0.3) 0%,
+                    rgba(124, 58, 237, 0.12) 0%,
                     transparent 50%
                 ),
                 radial-gradient(
@@ -243,13 +243,13 @@ const SUBSTITUTABLE_CSS = cssToString([
                 radial-gradient(
                     ellipse 120% 100% at calc(var(--mx, 10) * 1%)
                         calc(var(--my, 40) * 1%),
-                    rgba(163, 207, 252, 0.35) 0%,
+                    rgba(124, 58, 237, 0.12) 0%,
                     transparent 50%
                 ),
                 radial-gradient(
                     ellipse 100% 120% at calc(100% - var(--mx, 85) * 1%)
                         calc(var(--my, 60) * 1%),
-                    rgba(242, 249, 169, 0.3) 0%,
+                    rgba(124, 58, 237, 0.12) 0%,
                     transparent 50%
                 ),
                 radial-gradient(
