@@ -166,7 +166,7 @@ describe('WalletPicker', () => {
 
         el.setError('Connection refused')
 
-        expect(el.shadowRoot!.textContent).toContain('Connection Failed')
+        expect(el.shadowRoot!.textContent).toContain('Failed to connect')
         expect(el.shadowRoot!.textContent).toContain('Connection refused')
     })
 

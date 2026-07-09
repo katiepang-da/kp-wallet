@@ -185,6 +185,7 @@ export interface WalletPickerEntry {
     type: string
     description?: string | undefined
     icon?: string | undefined
+    iconBackground?: string | undefined
     url?: string | undefined
     /** Keep the global wallet popup open after pick for async HTTP-gateway navigation. */
     reuseGlobalWalletPopup?: boolean | undefined

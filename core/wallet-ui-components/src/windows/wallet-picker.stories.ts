@@ -6,7 +6,6 @@ import type {
     WalletPickerEntry,
     WalletPickerSuggestedEntry,
 } from '@canton-network/core-types'
-import { pickWallet } from './wallet-picker'
 import { html } from 'lit'
 import '../components/wallet-picker'
 
@@ -20,12 +19,14 @@ const MOCK_ENTRIES: WalletPickerEntry[] = [
     {
         providerId: 'canton-wallet',
         name: 'Wallet',
+        description: 'Popup + Browser Extension',
         type: 'remote',
         icon: '/images/logos/canton-logo.png',
     },
     {
         providerId: 'bron',
         name: 'Bron',
+        description: 'Enterprise',
         type: 'remote',
         icon: '/images/logos/bron-logo.svg',
     },
@@ -35,6 +36,7 @@ const MOCK_SUGGESTED_ENTRIES: WalletPickerSuggestedEntry[] = [
     {
         providerId: 'fireblocks',
         name: 'Fireblocks',
+        description: 'Mobile Wallet',
         type: 'remote',
         icon: '/images/logos/fireblocks-logo.svg',
         installUrls: [
@@ -48,6 +50,14 @@ const MOCK_SUGGESTED_ENTRIES: WalletPickerSuggestedEntry[] = [
             },
         ],
     },
+    {
+        providerId: 'custom-wallet-input',
+        name: 'Custom Wallet',
+        description: 'Link a CIP-103 wallet',
+        type: 'remote',
+        icon: '',
+        installUrls: [],
+    },
 ]
 
 const CONTAINER_STYLE =
@@ -60,7 +70,9 @@ function seedEntries(entries: WalletPickerEntry[]): void {
     )
 }
 
-function seedRecentGateways(entries: { name: string; rpcUrl: string }[]): void {
+function seedRecentGateways(
+    entries: { name: string; rpcUrl: string; description?: string }[]
+): void {
     localStorage.setItem('splice_wallet_picker_recent', JSON.stringify(entries))
 }
 
@@ -78,6 +90,7 @@ export const Default: StoryObj = {
         seedRecentGateways([
             {
                 name: 'Custom wallet 1',
+                description: 'custom API',
                 rpcUrl: 'https://custom-wallet-1.example/rpc',
             },
         ])
@@ -111,12 +124,17 @@ export const Modal: StoryObj = {
     render: () => {
         seedEntries(MOCK_ENTRIES)
         seedSuggestedEntries(MOCK_SUGGESTED_ENTRIES)
-        return html`<button
-            class="btn btn-primary"
-            @click=${() => pickWallet(MOCK_ENTRIES)}
-        >
-            Connect Wallet
-        </button>`
+        return html`
+            <div
+                style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000"
+            >
+                <div
+                    style="background:var(--wg-theme-background-color,#fff);border-radius:16px;width:${440}px;max-width:95vw;max-height:85vh;overflow:hidden;box-shadow:0 14px 28px rgba(15,23,42,0.12)"
+                >
+                    <swk-wallet-picker></swk-wallet-picker>
+                </div>
+            </div>
+        `
     },
 }
 

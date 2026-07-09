@@ -212,14 +212,20 @@ export class DappSDK {
         return detected
     }
 
-    private saveRecentGateway(name: string, rpcUrl: string): void {
+    private saveRecentGateway(
+        name: string,
+        rpcUrl: string,
+        description?: string
+    ): void {
         try {
             const raw = localStorage.getItem(this.RECENT_GATEWAYS_KEY)
-            const recent: { name: string; rpcUrl: string }[] = raw
-                ? JSON.parse(raw)
-                : []
+            const recent: {
+                name: string
+                rpcUrl: string
+                description?: string
+            }[] = raw ? JSON.parse(raw) : []
             const filtered = recent.filter((r) => r.rpcUrl !== rpcUrl)
-            filtered.unshift({ name, rpcUrl })
+            filtered.unshift({ name, rpcUrl, description })
             localStorage.setItem(
                 this.RECENT_GATEWAYS_KEY,
                 JSON.stringify(filtered.slice(0, 5))
@@ -434,7 +440,11 @@ export class DappSDK {
                                 walletType: 'remote',
                                 url: info.url,
                             })
-                            this.saveRecentGateway(info.name, info.url)
+                            this.saveRecentGateway(
+                                info.name,
+                                info.url,
+                                info.description
+                            )
                         } else if (info.type === 'browser') {
                             storage.setKernelDiscovery({
                                 walletType: 'extension',
