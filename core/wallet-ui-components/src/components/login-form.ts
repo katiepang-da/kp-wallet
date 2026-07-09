@@ -79,11 +79,47 @@ export class WgLoginForm extends BaseElement {
                 padding: 1rem 1.25rem 0;
             }
 
+            .top-left {
+                display: flex;
+                align-items: center;
+                gap: 0.625rem;
+                flex: 1;
+                min-width: 0;
+            }
+
+            .back-btn {
+                border: none;
+                background: transparent;
+                color: var(--wg-accent);
+                font-size: var(--wg-font-size-sm);
+                font-weight: var(--wg-font-weight-medium);
+                cursor: pointer;
+                padding: 0.25rem 0;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.25rem;
+                white-space: nowrap;
+                flex-shrink: 0;
+                transition: opacity 0.15s ease;
+            }
+
+            .back-btn:hover {
+                opacity: 0.75;
+            }
+
+            .back-arrow {
+                display: inline-flex;
+                align-items: center;
+                font-size: 1.1em;
+                line-height: 1;
+            }
+
             .top-logo {
                 width: 28px;
                 height: 28px;
                 object-fit: contain;
                 display: block;
+                flex-shrink: 0;
             }
 
             .top-title {
@@ -91,6 +127,8 @@ export class WgLoginForm extends BaseElement {
                 font-weight: var(--wg-font-weight-bold);
                 color: var(--wg-text);
                 margin: 0;
+                flex: 1;
+                min-width: 0;
             }
 
             .content {
@@ -335,6 +373,10 @@ export class WgLoginForm extends BaseElement {
         `
     }
 
+    private handleBack() {
+        this.dispatchEvent(new LoginBackEvent())
+    }
+
     protected render() {
         const recommended = this.recommendedNetworks
         const other = this.otherNetworks
@@ -343,8 +385,22 @@ export class WgLoginForm extends BaseElement {
         return html`
             <div class="modal-card">
                 <div class="top-bar">
-                    <img class="top-logo" src=${cantonLogo} alt="Canton logo" />
-                    <h1 class="top-title">Wallet Gateway</h1>
+                    <div class="top-left">
+                        <button
+                            type="button"
+                            class="back-btn"
+                            @click=${this.handleBack}
+                        >
+                            <span class="back-arrow">&larr;</span>
+                            Back
+                        </button>
+                        <img
+                            class="top-logo"
+                            src=${cantonLogo}
+                            alt="Canton logo"
+                        />
+                        <h1 class="top-title">Wallet Gateway</h1>
+                    </div>
                 </div>
 
                 <div class="content">

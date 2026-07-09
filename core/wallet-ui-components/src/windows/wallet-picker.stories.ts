@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Meta, StoryObj } from '@storybook/web-components-vite'
-import type { WalletPickerEntry } from '@canton-network/core-types'
+import type {
+    WalletPickerEntry,
+    WalletPickerSuggestedEntry,
+} from '@canton-network/core-types'
 import { pickWallet } from './wallet-picker'
 import { html } from 'lit'
 import '../components/wallet-picker'
@@ -26,17 +29,24 @@ const MOCK_ENTRIES: WalletPickerEntry[] = [
         type: 'remote',
         icon: '/images/logos/bron-logo.svg',
     },
+]
+
+const MOCK_SUGGESTED_ENTRIES: WalletPickerSuggestedEntry[] = [
     {
         providerId: 'fireblocks',
         name: 'Fireblocks',
         type: 'remote',
         icon: '/images/logos/fireblocks-logo.svg',
-    },
-    // Custom URL wallet - no icon, demonstrates the custom URL input feature
-    {
-        providerId: 'custom-wallet',
-        name: 'Custom wallet 1',
-        type: 'remote',
+        installUrls: [
+            {
+                platform: 'chrome',
+                url: 'https://chrome.google.com/webstore/detail/fireblocks',
+            },
+            {
+                platform: 'firefox',
+                url: 'https://addons.mozilla.org/en-US/firefox/addon/fireblocks',
+            },
+        ],
     },
 ]
 
@@ -54,10 +64,23 @@ function seedRecentGateways(entries: { name: string; rpcUrl: string }[]): void {
     localStorage.setItem('splice_wallet_picker_recent', JSON.stringify(entries))
 }
 
+function seedSuggestedEntries(entries: WalletPickerSuggestedEntry[]): void {
+    localStorage.setItem(
+        'splice_wallet_picker_suggested_entries',
+        JSON.stringify(entries)
+    )
+}
+
 export const Default: StoryObj = {
     render: () => {
         seedEntries(MOCK_ENTRIES)
-        localStorage.removeItem('splice_wallet_picker_recent')
+        seedSuggestedEntries(MOCK_SUGGESTED_ENTRIES)
+        seedRecentGateways([
+            {
+                name: 'Custom wallet 1',
+                rpcUrl: 'https://custom-wallet-1.example/rpc',
+            },
+        ])
         return html`
             <div style=${CONTAINER_STYLE}>
                 <swk-wallet-picker></swk-wallet-picker>
@@ -69,6 +92,7 @@ export const Default: StoryObj = {
 export const WithManualProviders: StoryObj = {
     render: () => {
         seedEntries(MOCK_ENTRIES)
+        seedSuggestedEntries(MOCK_SUGGESTED_ENTRIES)
         seedRecentGateways([
             {
                 name: 'https://manual-wallet.example/rpc',
@@ -84,13 +108,16 @@ export const WithManualProviders: StoryObj = {
 }
 
 export const Popup: StoryObj = {
-    render: () =>
-        html`<button
+    render: () => {
+        seedEntries(MOCK_ENTRIES)
+        seedSuggestedEntries(MOCK_SUGGESTED_ENTRIES)
+        return html`<button
             class="btn btn-primary"
             @click=${() => pickWallet(MOCK_ENTRIES)}
         >
             Connect Wallet
-        </button>`,
+        </button>`
+    },
 }
 
 export const Empty: StoryObj = {

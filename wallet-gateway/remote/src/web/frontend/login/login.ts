@@ -203,6 +203,10 @@ export class LoginUI extends BaseElement {
             .map((n) => n.id)
     }
 
+    private handleBack() {
+        window.close()
+    }
+
     protected render() {
         if (this.connecting) {
             return html`<wg-loading-state
@@ -217,6 +221,7 @@ export class LoginUI extends BaseElement {
                 .recommendedNetworkIds=${this.recommendedNetworkIds}
                 .connecting=${this.connecting}
                 @login-connect=${this.handleConnect}
+                @login-back=${this.handleBack}
             ></wg-login-form>
         `
     }
