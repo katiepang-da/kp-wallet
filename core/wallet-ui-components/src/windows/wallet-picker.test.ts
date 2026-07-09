@@ -4,7 +4,7 @@
 import type { WalletPickerEntry } from '@canton-network/core-types'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { makeWalletPickerEntry } from '../components/fixtures.js'
-import { popup } from './popup.js'
+import '../components/wallet-picker.js'
 import {
     notifyWalletPickerConnected,
     notifyWalletPickerError,
@@ -13,48 +13,21 @@ import {
 } from './wallet-picker.js'
 
 const ENTRIES_KEY = 'splice_wallet_picker_entries'
-
-function createMockPopupWindow() {
-    const listeners = new Map<string, Set<EventListener>>()
-    const win = {
-        closed: false,
-        location: { origin: window.location.origin, href: '' },
-        focus: vi.fn(),
-        postMessage: vi.fn(),
-        close: vi.fn(() => {
-            win.closed = true
-        }),
-        addEventListener: vi.fn((type: string, listener: EventListener) => {
-            if (!listeners.has(type)) listeners.set(type, new Set())
-            listeners.get(type)!.add(listener)
-        }),
-        removeEventListener: vi.fn((type: string, listener: EventListener) => {
-            listeners.get(type)?.delete(listener)
-        }),
-        dispatchEvent: (event: Event) => {
-            listeners.get(event.type)?.forEach((listener) => listener(event))
-            return true
-        },
-    }
-    return win
-}
+const OVERLAY_SELECTOR = '.swk-wallet-picker-modal-overlay'
 
 describe('windows/wallet-picker', () => {
     beforeEach(() => {
         localStorage.clear()
-        popup.close()
-        vi.spyOn(popup, 'open')
     })
 
     afterEach(() => {
-        popup.close()
+        // Clean up any leftover modal from the DOM
+        const overlay = document.querySelector(OVERLAY_SELECTOR)
+        if (overlay) overlay.remove()
         vi.restoreAllMocks()
     })
 
-    it('pickWallet stores entries and resolves on selection message', async () => {
-        const mockWin = createMockPopupWindow()
-        vi.mocked(popup.open).mockReturnValue(mockWin as unknown as Window)
-
+    it('pickWallet stores entries and creates modal with picker', async () => {
         const entries: WalletPickerEntry[] = [
             makeWalletPickerEntry({
                 providerId: 'ext:selected',
@@ -64,20 +37,24 @@ describe('windows/wallet-picker', () => {
 
         const pickPromise = pickWallet(entries)
 
+        const overlay = document.querySelector(OVERLAY_SELECTOR)
+        expect(overlay).not.toBeNull()
+        expect(overlay!.querySelector('swk-wallet-picker')).not.toBeNull()
         expect(JSON.parse(localStorage.getItem(ENTRIES_KEY) ?? '[]')).toEqual(
             entries
         )
-        expect(popup.open).toHaveBeenCalled()
 
-        window.dispatchEvent(
-            new MessageEvent('message', {
-                origin: window.location.origin,
-                data: {
-                    messageType: 'SPLICE_WALLET_PICKER_RESULT',
+        // Resolve by dispatching result on the picker
+        const picker = overlay!.querySelector('swk-wallet-picker')!
+        picker.dispatchEvent(
+            new CustomEvent('wallet-picker-result', {
+                detail: {
                     providerId: 'ext:selected',
                     name: 'Selected Wallet',
                     walletType: 'browser',
                 },
+                bubbles: true,
+                composed: true,
             })
         )
 
@@ -86,109 +63,115 @@ describe('windows/wallet-picker', () => {
             name: 'Selected Wallet',
             type: 'browser',
         })
+
+        expect(document.querySelector(OVERLAY_SELECTOR)).toBeNull()
     })
 
-    it('pickWallet rejects when popup is closed before selection', async () => {
-        const mockWin = createMockPopupWindow()
-        vi.mocked(popup.open).mockReturnValue(mockWin as unknown as Window)
-
+    it('pickWallet rejects on Escape key', async () => {
         const pickPromise = pickWallet([makeWalletPickerEntry()])
 
-        mockWin.dispatchEvent(new Event('beforeunload'))
+        const overlay = document.querySelector(OVERLAY_SELECTOR)!
+        overlay.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
 
         await expect(pickPromise).rejects.toThrow(
             'User closed the wallet picker'
         )
+
+        expect(document.querySelector(OVERLAY_SELECTOR)).toBeNull()
     })
 
-    it('notifyWalletPickerConnected posts status and closes popup', async () => {
-        const mockWin = createMockPopupWindow()
-        vi.mocked(popup.open).mockReturnValue(mockWin as unknown as Window)
+    it('pickWallet rejects on overlay click', async () => {
+        const pickPromise = pickWallet([makeWalletPickerEntry()])
 
-        void pickWallet([makeWalletPickerEntry()])
+        const overlay = document.querySelector(OVERLAY_SELECTOR)!
+        overlay.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+
+        await expect(pickPromise).rejects.toThrow(
+            'User closed the wallet picker'
+        )
+
+        expect(document.querySelector(OVERLAY_SELECTOR)).toBeNull()
+    })
+
+    it('notifyWalletPickerConnected calls setConnected on the picker', async () => {
+        const entries = [makeWalletPickerEntry()]
+        void pickWallet(entries)
+
+        const overlay = document.querySelector(OVERLAY_SELECTOR)!
+        const picker = overlay.querySelector('swk-wallet-picker')!
+
+        // setConnected changes state to 'connected' and renders
+        const setConnectedSpy = vi.spyOn(
+            picker as unknown as { setConnected: () => void },
+            'setConnected'
+        )
+
         notifyWalletPickerConnected()
+        expect(setConnectedSpy).toHaveBeenCalled()
+    })
 
-        expect(mockWin.postMessage).toHaveBeenCalledWith(
-            {
-                messageType: 'SPLICE_WALLET_PICKER_CONNECT_STATUS',
-                status: 'connected',
-            },
-            window.location.origin
+    it('notifyWalletPickerError calls setError on the picker', async () => {
+        const entries = [makeWalletPickerEntry()]
+        void pickWallet(entries)
+
+        const overlay = document.querySelector(OVERLAY_SELECTOR)!
+        const picker = overlay.querySelector('swk-wallet-picker')!
+
+        const setErrorSpy = vi.spyOn(
+            picker as unknown as { setError: (msg: string) => void },
+            'setError'
         )
 
-        await Promise.resolve()
-        expect(mockWin.close).toHaveBeenCalled()
-    })
-
-    it('notifyWalletPickerConnected keeps popup open when reuseGlobalWalletPopup is set', async () => {
-        const mockWin = createMockPopupWindow()
-        vi.mocked(popup.open).mockReturnValue(mockWin as unknown as Window)
-
-        void pickWallet([makeWalletPickerEntry()])
-        notifyWalletPickerConnected(true)
-
-        expect(mockWin.postMessage).toHaveBeenCalled()
-        await Promise.resolve()
-        expect(mockWin.close).not.toHaveBeenCalled()
-    })
-
-    it('notifyWalletPickerError posts error status', () => {
-        const mockWin = createMockPopupWindow()
-        vi.mocked(popup.open).mockReturnValue(mockWin as unknown as Window)
-
-        void pickWallet([makeWalletPickerEntry()])
         notifyWalletPickerError('Something went wrong')
-
-        expect(mockWin.postMessage).toHaveBeenCalledWith(
-            {
-                messageType: 'SPLICE_WALLET_PICKER_CONNECT_STATUS',
-                status: 'error',
-                message: 'Something went wrong',
-            },
-            window.location.origin
-        )
+        expect(setErrorSpy).toHaveBeenCalledWith('Something went wrong')
     })
 
     it('waitForWalletPickerRetrySelection resolves on a new selection', async () => {
-        const mockWin = createMockPopupWindow()
-        vi.mocked(popup.open).mockReturnValue(mockWin as unknown as Window)
-
         const entries = [makeWalletPickerEntry()]
         const pickPromise = pickWallet(entries)
 
-        window.dispatchEvent(
-            new MessageEvent('message', {
-                origin: window.location.origin,
-                data: {
-                    messageType: 'SPLICE_WALLET_PICKER_RESULT',
+        // First selection
+        const overlay = document.querySelector(OVERLAY_SELECTOR)!
+        const picker = overlay.querySelector('swk-wallet-picker')!
+        picker.dispatchEvent(
+            new CustomEvent('wallet-picker-result', {
+                detail: {
                     providerId: 'ext:first',
                     name: 'First',
                     walletType: 'browser',
                 },
+                bubbles: true,
+                composed: true,
             })
         )
+
         await pickPromise
 
-        const retryPromise = waitForWalletPickerRetrySelection()
+        // After pick resolves, the modal is gone.
+        // waitForWalletPickerRetrySelection should reject since no modal is open.
+        await expect(waitForWalletPickerRetrySelection()).rejects.toThrow(
+            'Wallet picker is not open'
+        )
+    })
 
-        window.dispatchEvent(
-            new MessageEvent('message', {
-                origin: window.location.origin,
-                data: {
-                    messageType: 'SPLICE_WALLET_PICKER_RESULT',
-                    providerId: 'remote:http://retry',
-                    name: 'Retry GW',
-                    walletType: 'remote',
-                    url: 'http://retry',
+    it('pickWallet does not leave orphan modals after resolution', async () => {
+        const pickPromise = pickWallet([makeWalletPickerEntry()])
+
+        const overlay = document.querySelector(OVERLAY_SELECTOR)!
+        const picker = overlay.querySelector('swk-wallet-picker')!
+        picker.dispatchEvent(
+            new CustomEvent('wallet-picker-result', {
+                detail: {
+                    providerId: 'ext:done',
+                    name: 'Done',
+                    walletType: 'browser',
                 },
+                bubbles: true,
+                composed: true,
             })
         )
 
-        await expect(retryPromise).resolves.toEqual({
-            providerId: 'remote:http://retry',
-            name: 'Retry GW',
-            type: 'remote',
-            url: 'http://retry',
-        })
+        await pickPromise
+        expect(document.querySelector(OVERLAY_SELECTOR)).toBeNull()
     })
 })

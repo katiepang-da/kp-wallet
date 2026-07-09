@@ -107,7 +107,7 @@ export const WithManualProviders: StoryObj = {
     },
 }
 
-export const Popup: StoryObj = {
+export const Modal: StoryObj = {
     render: () => {
         seedEntries(MOCK_ENTRIES)
         seedSuggestedEntries(MOCK_SUGGESTED_ENTRIES)

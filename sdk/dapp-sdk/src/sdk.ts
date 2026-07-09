@@ -443,7 +443,7 @@ export class DappSDK {
                         }
                     }
 
-                    notifyWalletPickerConnected(info.reuseGlobalWalletPopup)
+                    notifyWalletPickerConnected()
                     cleanup()
                     resolve(s.connection)
                 } catch (error) {

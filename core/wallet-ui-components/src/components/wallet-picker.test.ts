@@ -18,28 +18,13 @@ function setRecentGateways(gateways: { name: string; rpcUrl: string }[]) {
     localStorage.setItem(RECENT_KEY, JSON.stringify(gateways))
 }
 
-function mockOpener(postMessage = vi.fn()) {
-    Object.defineProperty(window, 'opener', {
-        value: { postMessage },
-        configurable: true,
-        writable: true,
-    })
-    return postMessage
-}
-
 describe('WalletPicker', () => {
     beforeEach(() => {
         localStorage.clear()
-        mockOpener()
     })
 
     afterEach(() => {
         vi.restoreAllMocks()
-        Object.defineProperty(window, 'opener', {
-            value: null,
-            configurable: true,
-            writable: true,
-        })
     })
 
     it('mounts without error', async () => {
@@ -90,8 +75,7 @@ describe('WalletPicker', () => {
         expect(el.shadowRoot!.textContent).toContain('Recent')
     })
 
-    it('posts selection to opener when a wallet card is clicked', async () => {
-        const postMessage = mockOpener()
+    it('dispatches wallet-picker-result when a wallet card is clicked', async () => {
         setPickerEntries([
             makeWalletPickerEntry({
                 providerId: 'browser:ext:ext-wallet',
@@ -104,26 +88,25 @@ describe('WalletPicker', () => {
             html`<swk-wallet-picker></swk-wallet-picker>`
         )
 
+        const resultPromise = new Promise<CustomEvent>((resolve) => {
+            el.addEventListener('wallet-picker-result', resolve, { once: true })
+        })
+
         const card = el.shadowRoot!.querySelector('.wallet-card') as HTMLElement
         card.click()
 
-        expect(postMessage).toHaveBeenCalledWith(
-            {
-                messageType: 'SPLICE_WALLET_PICKER_RESULT',
-                providerId: 'browser:ext:ext-wallet',
-                name: 'Ext Wallet',
-                walletType: 'extension',
-                url: undefined,
-                reuseGlobalWalletPopup: undefined,
-            },
-            '*'
-        )
+        const event = await resultPromise
+        expect(event.detail).toEqual({
+            providerId: 'browser:ext:ext-wallet',
+            name: 'Ext Wallet',
+            walletType: 'extension',
+            url: undefined,
+            reuseGlobalWalletPopup: undefined,
+        })
         expect(el.shadowRoot!.textContent).toContain('Connecting')
     })
 
     it('connects via custom URL input', async () => {
-        const postMessage = mockOpener()
-
         const el = await fixture<WalletPicker>(
             html`<swk-wallet-picker></swk-wallet-picker>`
         )
@@ -134,25 +117,26 @@ describe('WalletPicker', () => {
         input.value = 'http://custom.example'
 
         const connectBtn = el.shadowRoot!.querySelector(
-            '.btn-add'
+            '.btn-connect'
         ) as HTMLButtonElement
+
+        const resultPromise = new Promise<CustomEvent>((resolve) => {
+            el.addEventListener('wallet-picker-result', resolve, { once: true })
+        })
+
         connectBtn.click()
 
-        expect(postMessage).toHaveBeenCalledWith(
-            expect.objectContaining({
-                messageType: 'SPLICE_WALLET_PICKER_RESULT',
-                providerId: 'remote:http://custom.example',
-                name: 'http://custom.example',
-                walletType: 'remote',
-                url: 'http://custom.example',
-                reuseGlobalWalletPopup: true,
-            }),
-            '*'
-        )
+        const event = await resultPromise
+        expect(event.detail).toMatchObject({
+            providerId: 'remote:http://custom.example',
+            name: 'http://custom.example',
+            walletType: 'remote',
+            url: 'http://custom.example',
+            reuseGlobalWalletPopup: true,
+        })
     })
 
-    it('shows connected state when opener reports success', async () => {
-        const postMessage = mockOpener()
+    it('shows connected state when setConnected is called', async () => {
         setPickerEntries([
             makeWalletPickerEntry({
                 name: 'Wallet123',
@@ -167,38 +151,20 @@ describe('WalletPicker', () => {
         const card = el.shadowRoot!.querySelector('.wallet-card') as HTMLElement
         card.click()
 
-        window.dispatchEvent(
-            new MessageEvent('message', {
-                origin: window.location.origin,
-                data: {
-                    messageType: 'SPLICE_WALLET_PICKER_CONNECT_STATUS',
-                    status: 'connected',
-                },
-            })
-        )
+        el.setConnected()
 
         expect(el.shadowRoot!.textContent).toContain('Connected')
         expect(el.shadowRoot!.textContent).toContain('Wallet123')
-        expect(postMessage).toHaveBeenCalled()
     })
 
-    it('shows error state when opener reports failure', async () => {
+    it('shows error state when setError is called', async () => {
         setPickerEntries([makeWalletPickerEntry()])
 
         const el = await fixture<WalletPicker>(
             html`<swk-wallet-picker></swk-wallet-picker>`
         )
 
-        window.dispatchEvent(
-            new MessageEvent('message', {
-                origin: window.location.origin,
-                data: {
-                    messageType: 'SPLICE_WALLET_PICKER_CONNECT_STATUS',
-                    status: 'error',
-                    message: 'Connection refused',
-                },
-            })
-        )
+        el.setError('Connection refused')
 
         expect(el.shadowRoot!.textContent).toContain('Connection Failed')
         expect(el.shadowRoot!.textContent).toContain('Connection refused')
@@ -211,16 +177,7 @@ describe('WalletPicker', () => {
             html`<swk-wallet-picker></swk-wallet-picker>`
         )
 
-        window.dispatchEvent(
-            new MessageEvent('message', {
-                origin: window.location.origin,
-                data: {
-                    messageType: 'SPLICE_WALLET_PICKER_CONNECT_STATUS',
-                    status: 'error',
-                    message: 'Timeout',
-                },
-            })
-        )
+        el.setError('Timeout')
 
         const tryAgain = el.shadowRoot!.querySelector(
             '.btn-primary'
@@ -247,26 +204,5 @@ describe('WalletPicker', () => {
 
         expect(el.shadowRoot!.textContent).not.toContain('Removable GW')
         expect(JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]')).toEqual([])
-    })
-
-    it('ignores postMessage from foreign origins', async () => {
-        setPickerEntries([makeWalletPickerEntry()])
-
-        const el = await fixture<WalletPicker>(
-            html`<swk-wallet-picker></swk-wallet-picker>`
-        )
-
-        window.dispatchEvent(
-            new MessageEvent('message', {
-                origin: 'https://xeno.example',
-                data: {
-                    messageType: 'SPLICE_WALLET_PICKER_CONNECT_STATUS',
-                    status: 'error',
-                    message: 'Should be ignored',
-                },
-            })
-        )
-
-        expect(el.shadowRoot!.textContent).not.toContain('Failed to connect')
     })
 })

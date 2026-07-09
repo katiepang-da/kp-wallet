@@ -135,7 +135,7 @@ const SUBSTITUTABLE_CSS = cssToString([
             gap: 12px;
             padding: 14px 12px;
             border-radius: 8px;
-            background: var(--wg-theme-surface-color);
+            background: rgb(255 255 255 / 80%);
             border: 1px solid transparent;
             box-shadow:
                 0 1px 3px rgba(0, 0, 0, 0.04),
@@ -144,7 +144,7 @@ const SUBSTITUTABLE_CSS = cssToString([
             width: 100%;
             text-align: left;
             margin-bottom: 8px;
-            opacity: 0.85;
+            opacity: 0.9;
             position: relative;
         }
 
@@ -220,7 +220,7 @@ const SUBSTITUTABLE_CSS = cssToString([
             gap: 12px;
             padding: 14px 12px;
             border-radius: 8px;
-            background: var(--wg-theme-surface-color);
+            background: rgb(255 255 255 / 80%);
             border: 1px solid transparent;
             box-shadow:
                 0 1px 3px rgba(0, 0, 0, 0.04),
@@ -230,7 +230,7 @@ const SUBSTITUTABLE_CSS = cssToString([
             width: 100%;
             text-align: left;
             margin-bottom: 8px;
-            opacity: 0.85;
+            opacity: 0.9;
             position: relative;
         }
 
@@ -574,17 +574,12 @@ const SUBSTITUTABLE_CSS = cssToString([
 
 /**
  * <swk-wallet-picker> — a wallet selection component modelled after PartyLayer's
- * WalletModal. Designed for popup rendering (same pattern as <swk-discovery>).
- *
- * IMPORTANT: Because the popup serialises this class via .toString() and runs it
- * inside a blob URL, every helper the class uses must be either:
- *   (a) a method / property on the class itself, or
- *   (b) a string literal inlined where it is used.
- * Top-level module constants are NOT available at runtime in the popup.
+ * WalletModal. Designed for on-page modal rendering.
  *
  * Communication:
  *   - Reads wallet entries from localStorage key `splice_wallet_picker_entries`
- *   - Posts a WalletPickerResult to window.opener via postMessage on selection
+ *   - Dispatches a `wallet-picker-result` CustomEvent on selection
+ *   - Dispatches a `wallet-picker-close` CustomEvent when it should be dismissed
  *
  * States: list → connecting → connected | error
  */
@@ -603,26 +598,6 @@ export class WalletPicker extends HTMLElement {
 
     private wcUri: string | null = null
     private wcQrDataUrl: string | null = null
-
-    private readonly onOpenerStatusMessage = (event: MessageEvent): void => {
-        if (event.origin !== window.location.origin) return
-
-        const data = event.data
-        if (data?.messageType !== 'SPLICE_WALLET_PICKER_CONNECT_STATUS') return
-
-        if (data.status === 'connected') {
-            this.setConnected()
-            return
-        }
-
-        if (data.status === 'error') {
-            const message =
-                typeof data.message === 'string' && data.message.length > 0
-                    ? data.message
-                    : 'Failed to connect wallet'
-            this.setError(message)
-        }
-    }
 
     private readonly onMouseMove = (event: MouseEvent): void => {
         const rect = this.getBoundingClientRect()
@@ -791,19 +766,19 @@ export class WalletPicker extends HTMLElement {
         this.state = 'connecting'
         this.render()
 
-        if (window.opener) {
-            window.opener.postMessage(
-                {
-                    messageType: 'SPLICE_WALLET_PICKER_RESULT',
+        this.dispatchEvent(
+            new CustomEvent('wallet-picker-result', {
+                detail: {
                     providerId: entry.providerId,
                     name: entry.name,
                     walletType: entry.type,
                     url: entry.url,
                     reuseGlobalWalletPopup: entry.reuseGlobalWalletPopup,
                 },
-                '*'
-            )
-        }
+                bubbles: true,
+                composed: true,
+            })
+        )
     }
 
     private connectCustomUrl(rpcUrl: string): void {
@@ -823,7 +798,12 @@ export class WalletPicker extends HTMLElement {
         this.state = 'connected'
         this.render()
         setTimeout(() => {
-            if (window.opener) window.close()
+            this.dispatchEvent(
+                new CustomEvent('wallet-picker-close', {
+                    bubbles: true,
+                    composed: true,
+                })
+            )
         }, 1200)
     }
 
@@ -973,7 +953,12 @@ export class WalletPicker extends HTMLElement {
             })
             badge.addEventListener('click', (e: Event) => {
                 e.stopPropagation()
-                window.close()
+                this.dispatchEvent(
+                    new CustomEvent('wallet-picker-close', {
+                        bubbles: true,
+                        composed: true,
+                    })
+                )
             })
             installButtons.appendChild(badge)
         }
@@ -1012,7 +997,7 @@ export class WalletPicker extends HTMLElement {
             )
             list.appendChild(empty)
         } else {
-            const otherTitle = this.el('div', 'Popular', {
+            const otherTitle = this.el('div', 'Favorite', {
                 class: 'custom-url-label',
             })
             list.appendChild(otherTitle)
@@ -1226,7 +1211,14 @@ export class WalletPicker extends HTMLElement {
             class: 'btn-secondary',
             type: 'button',
         })
-        cancelBtn.addEventListener('click', () => window.close())
+        cancelBtn.addEventListener('click', () => {
+            this.dispatchEvent(
+                new CustomEvent('wallet-picker-close', {
+                    bubbles: true,
+                    composed: true,
+                })
+            )
+        })
         btnRow.append(retryBtn, cancelBtn)
         view.appendChild(btnRow)
 
@@ -1261,7 +1253,6 @@ export class WalletPicker extends HTMLElement {
     }
 
     connectedCallback(): void {
-        window.addEventListener('message', this.onOpenerStatusMessage)
         this.addEventListener('mousemove', this.onMouseMove)
         this.render()
 
@@ -1276,7 +1267,6 @@ export class WalletPicker extends HTMLElement {
     }
 
     disconnectedCallback(): void {
-        window.removeEventListener('message', this.onOpenerStatusMessage)
         this.removeEventListener('mousemove', this.onMouseMove)
     }
 
