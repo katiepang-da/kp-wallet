@@ -106,11 +106,9 @@ class PopupInstance {
 
                 body {
                     display: flex;
-                    align-items: center;
-                    justify-content: center;
+                    flex-direction: column;
                     background: #ffffff;
-                    padding: 1rem;
-                    box-sizing: border-box;
+                    padding: 0;
                 }
             </style>
         </head>
