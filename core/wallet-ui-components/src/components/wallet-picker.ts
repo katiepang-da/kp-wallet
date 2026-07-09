@@ -25,10 +25,11 @@ const SUBSTITUTABLE_CSS = cssToString([
         }
 
         :host {
+            position: fixed;
+            inset: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            height: 100dvh;
             background-color: var(--wg-theme-background-color);
             background-image:
                 linear-gradient(
