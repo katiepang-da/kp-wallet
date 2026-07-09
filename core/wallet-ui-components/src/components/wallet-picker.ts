@@ -25,7 +25,9 @@ const SUBSTITUTABLE_CSS = cssToString([
         }
 
         :host {
-            display: block;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             min-height: 100dvh;
             background-color: var(--wg-theme-background-color);
             background-image:
@@ -40,21 +42,15 @@ const SUBSTITUTABLE_CSS = cssToString([
                 30px 30px;
         }
 
-        .root {
+        .view-container {
             width: 100%;
             max-width: 420px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: var(--wg-shadow-lg, 0 14px 28px rgba(15, 23, 42, 0.12));
-        }
-
-        .view-container {
             display: flex;
             flex-direction: column;
             flex: 1;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--wg-shadow-lg, 0 14px 28px rgba(15, 23, 42, 0.12));
         }
 
         .header {
@@ -598,7 +594,6 @@ export class WalletPicker extends HTMLElement {
 
     private readonly RECENT_KEY = 'splice_wallet_picker_recent'
 
-    private root: HTMLElement
     private entries: WalletPickerEntry[] = []
     private platform: BrowserPlatform | 'unsupported' = 'unsupported'
     private suggestedEntries: WalletPickerSuggestedEntry[] = []
@@ -650,9 +645,6 @@ export class WalletPicker extends HTMLElement {
             style.textContent = ctor.styles
             this.shadowRoot!.appendChild(style)
         }
-
-        this.root = document.createElement('div')
-        this.root.className = 'root'
 
         this.loadEntries()
         this.loadSuggestedEntries()
