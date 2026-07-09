@@ -28,7 +28,6 @@ const SUBSTITUTABLE_CSS = cssToString([
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100dvh;
             background-color: var(--wg-theme-background-color);
             background-image:
                 linear-gradient(
@@ -47,7 +46,7 @@ const SUBSTITUTABLE_CSS = cssToString([
             max-width: 420px;
             display: flex;
             flex-direction: column;
-            flex: 1;
+            min-height: 100dvh;
             border-radius: 16px;
             overflow: hidden;
             box-shadow: var(--wg-shadow-lg, 0 14px 28px rgba(15, 23, 42, 0.12));
