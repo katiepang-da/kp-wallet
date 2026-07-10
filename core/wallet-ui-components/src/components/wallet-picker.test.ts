@@ -9,6 +9,7 @@ import { WalletPicker } from './wallet-picker.js'
 
 const ENTRIES_KEY = 'splice_wallet_picker_entries'
 const RECENT_KEY = 'splice_wallet_picker_recent'
+const SUGGESTED_KEY = 'splice_wallet_picker_suggested_entries'
 
 function setPickerEntries(entries: ReturnType<typeof makeWalletPickerEntry>[]) {
     localStorage.setItem(ENTRIES_KEY, JSON.stringify(entries))
@@ -16,6 +17,19 @@ function setPickerEntries(entries: ReturnType<typeof makeWalletPickerEntry>[]) {
 
 function setRecentGateways(gateways: { name: string; rpcUrl: string }[]) {
     localStorage.setItem(RECENT_KEY, JSON.stringify(gateways))
+}
+
+function setSuggestedEntries(
+    entries: {
+        providerId: string
+        name: string
+        type: string
+        description?: string
+        icon?: string
+        installUrls: { platform: string; url: string }[]
+    }[]
+) {
+    localStorage.setItem(SUGGESTED_KEY, JSON.stringify(entries))
 }
 
 describe('WalletPicker', () => {
@@ -107,17 +121,26 @@ describe('WalletPicker', () => {
     })
 
     it('connects via custom URL input', async () => {
+        setSuggestedEntries([
+            {
+                providerId: 'custom-wallet-input',
+                name: 'Custom Wallet',
+                type: 'remote',
+                installUrls: [],
+            },
+        ])
+
         const el = await fixture<WalletPicker>(
             html`<swk-wallet-picker></swk-wallet-picker>`
         )
 
         const input = el.shadowRoot!.querySelector(
-            '.custom-url-input'
+            '.wallet-suggested-card .custom-url-input'
         ) as HTMLInputElement
         input.value = 'http://custom.example'
 
         const connectBtn = el.shadowRoot!.querySelector(
-            '.btn-connect'
+            '.wallet-suggested-card .btn-connect'
         ) as HTMLButtonElement
 
         const resultPromise = new Promise<CustomEvent>((resolve) => {

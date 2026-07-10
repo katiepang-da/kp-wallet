@@ -25,8 +25,11 @@ const SUBSTITUTABLE_CSS = cssToString([
         }
 
         :host {
-            display: block;
+            display: flex;
+            flex-direction: column;
             height: 100%;
+            border-radius: 16px;
+            overflow: hidden;
             background-color: var(--wg-theme-background-color);
             background-image:
                 linear-gradient(
@@ -42,13 +45,11 @@ const SUBSTITUTABLE_CSS = cssToString([
 
         .view-container {
             width: 100%;
-            max-width: 420px;
-            margin: 0 auto;
+            flex: 1;
+            min-height: 0;
+            max-height: 100%;
             display: flex;
             flex-direction: column;
-            height: 100%;
-            border-radius: 16px;
-            overflow: hidden;
             box-shadow: var(--wg-shadow-lg, 0 14px 28px rgba(15, 23, 42, 0.12));
         }
 
@@ -56,11 +57,14 @@ const SUBSTITUTABLE_CSS = cssToString([
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px;
-            border-bottom: 1px solid var(--wg-theme-border-color);
+            padding: 16px 24px 12px;
         }
 
-        .header-back-btn,
+        .header-title {
+            font-weight: 600;
+            font-size: large;
+        }
+
         .header-close-btn {
             border: none;
             background: transparent;
@@ -74,13 +78,32 @@ const SUBSTITUTABLE_CSS = cssToString([
             height: 24px;
         }
 
-        .header-back-btn:hover,
         .header-close-btn:hover {
             color: var(--wg-theme-text-secondary);
         }
 
-        .header-back-btn svg,
         .header-close-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .header-back-btn {
+            border: none;
+            background: transparent;
+            padding: 0;
+            color: var(--wg-theme-text-color);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        .header-back-btn:hover {
+            color: var(--wg-theme-text-secondary);
+        }
+
+        .header-back-btn svg {
             width: 18px;
             height: 18px;
         }
@@ -89,8 +112,9 @@ const SUBSTITUTABLE_CSS = cssToString([
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 4px 12px 0;
+            padding: 4px 24px 0;
             min-height: 0;
+            margin-bottom: 16px;
         }
 
         .wallet-suggested-card {
@@ -103,8 +127,8 @@ const SUBSTITUTABLE_CSS = cssToString([
             background: rgb(255 255 255 / 80%);
             border: 1px solid transparent;
             box-shadow:
-                0 1px 3px rgba(0, 0, 0, 0.04),
-                0 1px 2px rgba(0, 0, 0, 0.06);
+                0 2px 6px rgba(0, 0, 0, 0.06),
+                0 4px 12px rgba(0, 0, 0, 0.04);
             transition: all 0.15s ease;
             width: 100%;
             text-align: left;
@@ -158,8 +182,8 @@ const SUBSTITUTABLE_CSS = cssToString([
         .wallet-suggested-card:not(.wallet-suggested-card-disabled):hover {
             border-color: rgba(0, 0, 0, 0.08);
             box-shadow:
-                -6px -6px 16px rgba(255, 255, 255, 0.9),
-                8px 8px 20px rgba(0, 0, 0, 0.12);
+                -8px -8px 20px rgba(255, 255, 255, 0.95),
+                10px 10px 28px rgba(0, 0, 0, 0.16);
         }
 
         .btn-secondary.wallet-install-btn {
@@ -188,8 +212,8 @@ const SUBSTITUTABLE_CSS = cssToString([
             background: rgb(255 255 255 / 80%);
             border: 1px solid transparent;
             box-shadow:
-                0 1px 3px rgba(0, 0, 0, 0.04),
-                0 1px 2px rgba(0, 0, 0, 0.06);
+                0 2px 6px rgba(0, 0, 0, 0.06),
+                0 4px 12px rgba(0, 0, 0, 0.04);
             cursor: pointer;
             transition: all 0.15s ease;
             width: 100%;
@@ -235,8 +259,8 @@ const SUBSTITUTABLE_CSS = cssToString([
         .wallet-card:hover {
             border-color: rgba(0, 0, 0, 0.08);
             box-shadow:
-                -6px -6px 16px rgba(255, 255, 255, 0.9),
-                8px 8px 20px rgba(0, 0, 0, 0.12);
+                -8px -8px 20px rgba(255, 255, 255, 0.95),
+                10px 10px 28px rgba(0, 0, 0, 0.16);
         }
 
         .wallet-card:focus-visible {
@@ -324,10 +348,10 @@ const SUBSTITUTABLE_CSS = cssToString([
             gap: 6px;
             width: 100%;
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: var(--wg-theme-text-color);
+            color: #928ca0;
             padding: 0 0 8px;
         }
 
@@ -540,8 +564,8 @@ const SUBSTITUTABLE_CSS = cssToString([
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 24px 12px 40px 12px;
-            gap: 12px;
+            padding: 16px 12px 40px 12px;
+            gap: 4px;
         }
 
         .connecting-logo {
@@ -552,6 +576,20 @@ const SUBSTITUTABLE_CSS = cssToString([
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .connecting-logo::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.25);
+            animation: shadow-pulse 2s ease-in-out infinite;
+            pointer-events: none;
         }
 
         .connecting-logo-inner {
@@ -586,7 +624,19 @@ const SUBSTITUTABLE_CSS = cssToString([
                 transform: translateY(0) scale(1);
             }
             50% {
-                transform: translateY(-6px) scale(1.05);
+                transform: translateY(-12px) scale(1.08);
+            }
+        }
+
+        @keyframes shadow-pulse {
+            0%,
+            100% {
+                transform: translateX(-50%) scale(1);
+                opacity: 0.8;
+            }
+            50% {
+                transform: translateX(-50%) scale(0.6);
+                opacity: 0.3;
             }
         }
 
@@ -595,6 +645,7 @@ const SUBSTITUTABLE_CSS = cssToString([
             font-weight: 500;
             color: var(--wg-theme-text-color);
             text-align: center;
+            margin-top: 16px;
         }
 
         .connecting-desc {
@@ -855,18 +906,28 @@ export class WalletPicker extends HTMLElement {
 
     // ── Rendering ──────────────────────────────────────────
 
-    private renderHeader(): HTMLElement {
+    private renderHeader(showBack = false): HTMLElement {
         const header = this.el('div', '', { class: 'header' })
 
-        const backBtn = this.el('button', '', {
-            class: 'header-back-btn',
-            type: 'button',
-            'aria-label': 'Back',
-        })
-        backBtn.innerHTML =
-            '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0"/></svg>'
-        backBtn.addEventListener('click', () => this.goBackToList())
-        header.appendChild(backBtn)
+        if (showBack) {
+            const backBtn = this.el('button', '', {
+                class: 'header-back-btn',
+                type: 'button',
+                'aria-label': 'Back',
+            })
+            backBtn.innerHTML =
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Back'
+            backBtn.addEventListener('click', () => {
+                this.state = 'list'
+                this.render()
+            })
+            header.appendChild(backBtn)
+        } else {
+            const title = this.el('span', 'Connect a Wallet', {
+                class: 'header-title',
+            })
+            header.appendChild(title)
+        }
 
         const closeBtn = this.el('button', '×', {
             class: 'header-close-btn',
@@ -931,18 +992,25 @@ export class WalletPicker extends HTMLElement {
     private renderSuggestedWalletCard(
         entry: WalletPickerSuggestedEntry
     ): HTMLElement {
-        const existsForCurrentPlatform = entry.installUrls.some(
-            (install) => install.platform === this.platform
-        )
+        const isCustom = entry.installUrls.length === 0
+        const existsForCurrentPlatform =
+            !isCustom &&
+            entry.installUrls.some(
+                (install) => install.platform === this.platform
+            )
 
-        const className = existsForCurrentPlatform
+        const className = isCustom
             ? 'wallet-suggested-card'
-            : 'wallet-suggested-card wallet-suggested-card-disabled'
+            : existsForCurrentPlatform
+              ? 'wallet-suggested-card'
+              : 'wallet-suggested-card wallet-suggested-card-disabled'
 
         const card = this.el('div', '', {
             class: className,
-            tabindex: '0',
-            'aria-label': `Install ${entry.name}`,
+            tabindex: isCustom ? '-1' : '0',
+            'aria-label': isCustom
+                ? 'Custom wallet input'
+                : `Install ${entry.name}`,
         })
 
         const icon = this.el('div', '', { class: 'wallet-icon' })
@@ -958,6 +1026,32 @@ export class WalletPicker extends HTMLElement {
         card.appendChild(icon)
 
         card.appendChild(this.el('span', entry.name, { class: 'wallet-name' }))
+
+        if (isCustom) {
+            const wrap = this.el('div', '', { class: 'custom-url-input-wrap' })
+            wrap.style.flex = '0 0 100%'
+            const input = this.el('input', '', {
+                class: 'custom-url-input',
+                type: 'text',
+                placeholder: 'Wallet API URL',
+            })
+            const addBtn = this.el('button', 'Connect', {
+                class: 'btn-connect',
+            })
+            const doConnect = () => {
+                const value = (input as HTMLInputElement).value
+                if (value.trim()) {
+                    this.connectCustomUrl(value)
+                }
+            }
+            addBtn.addEventListener('click', doConnect)
+            input.addEventListener('keydown', (e: Event) => {
+                if ((e as KeyboardEvent).key === 'Enter') doConnect()
+            })
+            wrap.append(input, addBtn)
+            card.appendChild(wrap)
+            return card
+        }
 
         const installButtons = this.el('div', '', {
             class: 'wallet-install-buttons',
@@ -1048,62 +1142,6 @@ export class WalletPicker extends HTMLElement {
 
         container.appendChild(list)
 
-        // Custom URL section
-        const customSection = this.el('div', '', {
-            class: 'custom-url-section',
-        })
-
-        const label = this.el('div', '', { class: 'custom-url-label' })
-        label.appendChild(document.createTextNode('CUSTOM WALLET'))
-
-        const infoIcon = this.el('button', '', {
-            class: 'info-icon',
-            type: 'button',
-            'aria-label': 'Wallet API help',
-        })
-        infoIcon.innerHTML =
-            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>'
-
-        const infoTooltip = this.el(
-            'div',
-            'Wallet not listed above? Enter its Wallet API. The wallet must support CIP-103.',
-            {
-                class: 'info-tooltip',
-                role: 'tooltip',
-            }
-        )
-        const infoWrap = this.el('span', '', { class: 'info-wrap' })
-        infoWrap.append(infoIcon, infoTooltip)
-
-        label.append(infoWrap)
-        customSection.appendChild(label)
-
-        const row = this.el('div', '', { class: 'custom-url-row' })
-        const wrap = this.el('div', '', { class: 'custom-url-input-wrap' })
-        const input = this.el('input', '', {
-            class: 'custom-url-input',
-            type: 'text',
-            placeholder: 'Wallet API URL',
-        })
-        const addBtn = this.el('button', 'Connect', { class: 'btn-connect' })
-
-        const doConnect = () => {
-            const value = (input as HTMLInputElement).value
-            if (value.trim()) {
-                this.connectCustomUrl(value)
-            }
-        }
-
-        addBtn.addEventListener('click', doConnect)
-        input.addEventListener('keydown', (e: Event) => {
-            if ((e as KeyboardEvent).key === 'Enter') doConnect()
-        })
-
-        wrap.append(input, addBtn)
-        row.appendChild(wrap)
-        customSection.appendChild(row)
-        container.appendChild(customSection)
-
         return container
     }
 
@@ -1111,7 +1149,7 @@ export class WalletPicker extends HTMLElement {
         const container = this.el('div', '', {
             class: 'view-container',
         })
-        container.appendChild(this.renderHeader())
+        container.appendChild(this.renderHeader(true))
 
         const view = this.el('div', '', { class: 'status-view' })
 
