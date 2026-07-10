@@ -5,6 +5,7 @@ import { css, html, PropertyValues } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import './back-link.js'
 import { BaseElement } from '../internal/base-element.js'
+import { chevronLeftIcon } from '../icons/index.js'
 import { PublicNetwork, Idp } from '@canton-network/core-wallet-user-rpc-client'
 import cantonLogo from '../../images/logos/canton-logo.png'
 
@@ -90,28 +91,19 @@ export class WgLoginForm extends BaseElement {
             .back-btn {
                 border: none;
                 background: transparent;
-                color: var(--wg-accent);
-                font-size: var(--wg-font-size-sm);
-                font-weight: var(--wg-font-weight-medium);
+                color: var(--wg-text-secondary);
                 cursor: pointer;
-                padding: 0.25rem 0;
+                padding: 0.25rem;
                 display: inline-flex;
                 align-items: center;
-                gap: 0.25rem;
-                white-space: nowrap;
+                justify-content: center;
                 flex-shrink: 0;
-                transition: opacity 0.15s ease;
+                border-radius: var(--wg-radius-md);
+                transition: background 0.15s ease;
             }
 
             .back-btn:hover {
-                opacity: 0.75;
-            }
-
-            .back-arrow {
-                display: inline-flex;
-                align-items: center;
-                font-size: 1.1em;
-                line-height: 1;
+                background: rgba(var(--wg-accent-rgb), 0.08);
             }
 
             .top-logo {
@@ -140,8 +132,8 @@ export class WgLoginForm extends BaseElement {
 
             .section-title {
                 font-size: var(--wg-font-size-xs);
-                font-weight: var(--wg-font-weight-semibold);
-                color: var(--wg-text-secondary);
+                font-weight: 500;
+                color: #928ca0;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
                 margin: 0.5rem 0 0.375rem;
@@ -390,9 +382,9 @@ export class WgLoginForm extends BaseElement {
                             type="button"
                             class="back-btn"
                             @click=${this.handleBack}
+                            aria-label="Back"
                         >
-                            <span class="back-arrow">&larr;</span>
-                            Back
+                            ${chevronLeftIcon}
                         </button>
                         <img
                             class="top-logo"
