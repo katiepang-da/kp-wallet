@@ -10,7 +10,7 @@ import {
     Toolbar,
     Typography,
 } from '@mui/material'
-import { createLink } from '@tanstack/react-router'
+import { createLink, useNavigate } from '@tanstack/react-router'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import SettingsIcon from '@mui/icons-material/Settings'
 import LogoutIcon from '@mui/icons-material/Logout'
@@ -29,10 +29,10 @@ export const Header = () => {
     const [transferDialogOpen, setTransferDialogOpen] = useState(false)
     const menuOpen = Boolean(anchorEl)
     const { isDarkMode, toggleTheme } = useTheme()
-    const { status, connect, open: openGateway, disconnect } = useConnection()
+    const { status, open: openGateway, disconnect } = useConnection()
     const connected = status?.connection?.isConnected
 
-    const action = connected ? disconnect : connect
+    const navigate = useNavigate()
 
     const handleTransferClick = () => {
         setAnchorEl(null)
@@ -99,9 +99,9 @@ export const Header = () => {
                             sx={{
                                 textTransform: 'none',
                             }}
-                            onClick={() => action()}
+                            onClick={() => navigate({ to: '/next/connect' })}
                         >
-                            {connected ? 'Disconnect' : 'Connect'}
+                            Connect
                         </Button>
                     )}
 
@@ -161,7 +161,7 @@ export const Header = () => {
                         </MenuItem>
 
                         {connected && (
-                            <MenuItem sx={{ py: 1.5 }} onClick={() => action()}>
+                            <MenuItem sx={{ py: 1.5 }} onClick={() => disconnect()}>
                                 <LogoutIcon sx={{ mr: 2, fontSize: 20 }} />
                                 Disconnect
                             </MenuItem>
